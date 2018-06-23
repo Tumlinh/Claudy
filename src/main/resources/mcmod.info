@@ -1,0 +1,16 @@
+[
+{
+  "modid": "dickymob",
+  "name": "Dicky Mob",
+  "description": "Spoonerism of a phallic character",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Tumlinh"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
