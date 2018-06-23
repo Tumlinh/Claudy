@@ -45,6 +45,11 @@ public class Snapshot
             this.maxY = maxY;
             this.maxZ = maxZ;
         }
+
+        public int getVolume()
+        {
+            return (this.maxX - this.minX + 1) * (this.maxY - this.minY + 1) * (this.maxZ - this.minZ + 1);
+        }
     }
 
     public static void save(String label, Box box, World world)
@@ -52,7 +57,7 @@ public class Snapshot
         saveSnapshot(label + ".x", box, world);
     }
 
-    public static void restore(String label, World world)
+    public static int restore(String label, World world)
     {
         // Load NBT from file
         NBTTagCompound mainCompound = loadSnapshot(label + ".x");
@@ -71,6 +76,8 @@ public class Snapshot
 
         // TODO: Extract tile entities and process them
         // processTileEntities(box, NBTTileEntities, world);
+
+        return box.getVolume();
     }
 
     private static void processBlocks(Box box, NBTTagList NBTBlocks, NBTTagList NBTTileEntities, World world)
@@ -90,15 +97,16 @@ public class Snapshot
                     int metadata = payload & 0xFF;
                     Block block = Block.getBlockById(blockID);
                     IBlockState blockState = block.getStateFromMeta(metadata);
-                    
+
                     world.setBlockState(pos, blockState, 2);
-                    
+
                     if (block.hasTileEntity(null)) {
                         NBTTagCompound NBTTileEntity = (NBTTagCompound) tileEntitiesIterator.next();
                         TileEntity tileEntity = TileEntity.create(world, NBTTileEntity);
-                        System.out.println(blockState);
-                        System.out.println(tileEntity);
-                        System.out.println();
+                        // XXX: Wrong order of tile entities here?
+                        // System.out.println(blockState);
+                        // System.out.println(tileEntity);
+                        // System.out.println();
                         if (tileEntity != null)
                             world.getChunkFromBlockCoords(pos).addTileEntity(tileEntity);
                     }
@@ -141,9 +149,11 @@ public class Snapshot
                     NBTBlocks.appendTag(new NBTTagShort(payload));
 
                     // XXX: debug
-                    System.out.format("(%d,%d,%d): %s (id=%d)  meta=%d  tile=%b data=%d%n", x, y, z,
-                            block.getLocalizedName(), Block.getIdFromBlock(block), block.getMetaFromState(state),
-                            block.hasTileEntity(null), payload);
+                    /*
+                     * System.out.format("(%d,%d,%d): %s (id=%d)  meta=%d  tile=%b data=%d%n", x, y,
+                     * z, block.getLocalizedName(), Block.getIdFromBlock(block),
+                     * block.getMetaFromState(state), block.hasTileEntity(null), payload);
+                     */
 
                     // Save tile entity
                     if (block.hasTileEntity(null)) {
@@ -152,7 +162,7 @@ public class Snapshot
                         NBTTagCompound compound = new NBTTagCompound();
                         compound = tileEntity.writeToNBT(compound);
                         NBTTileEntities.appendTag(compound);
-                        System.out.println(tileEntity);
+                        // System.out.println(tileEntity);
                     }
                 }
             }

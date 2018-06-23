@@ -46,6 +46,9 @@ public class CommandSnapshot extends CommandBase
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
+        // TODO: check args length
+        // TODO: autocompletion?
+
         if (args.length < 2)
             throw new WrongUsageException(this.getUsage(sender), new Object[0]);
 
@@ -65,19 +68,26 @@ public class CommandSnapshot extends CommandBase
             int z2 = (int) parseDouble(d2, args[7], true);
 
             Box box = new Box(x1, y1, z1, x2, y2, z2);
+            int x = box.getVolume();
 
-            Snapshot.save(label, box, world);
+            // Check box volume for security purposes
+            if (box.getVolume() > 10000000) {
+                sendMessage(sender, "Volume is too big. Aborting", TextFormatting.RED);
+            } else {
+                Snapshot.save(label, box, world);
+                sendMessage(sender, "Saved snapshot '" + label + "' (" + box.getVolume() + " blocks)",
+                        TextFormatting.BLUE);
+            }
         } else if (args[0].equals("restore")) {
-            Snapshot.restore(label, world);
+            int volume = Snapshot.restore(label, world);
+            sendMessage(sender, "Restored snapshot '" + label + "' (" + volume + " blocks)", TextFormatting.BLUE);
         }
-
-        sendMessage(sender, "done");
     }
 
-    private static void sendMessage(ICommandSender sender, String message)
+    private static void sendMessage(ICommandSender sender, String message, TextFormatting textFormatting)
     {
         ITextComponent msg = new TextComponentTranslation(message, new Object[0]);
-        msg.getStyle().setColor(TextFormatting.BLUE);
+        msg.getStyle().setColor(textFormatting);
         sender.sendMessage(msg);
     }
 }
