@@ -1,3 +1,4 @@
+// Comment to enable syntax highlighting in my crappy text editor
 buildscript {
     repositories {
         jcenter()
@@ -24,7 +25,7 @@ minecraft {
     version = "1.12.2-14.23.3.2655"
     runDir = "run"
 	
-	replaceIn "DickyMob.java"
+	replaceIn "Claudy.java"
 	replace "@MOD_VERSION@", project.version
     
     // the mappings can be changed at any time, and must be in the following format.

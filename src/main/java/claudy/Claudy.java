@@ -10,7 +10,7 @@ public class Claudy
 {
     public static final String MODID = "claudy";
     public static final String NAME = "Claudy";
-    public static final String VERSION = "@VMOD_VERSION@";
+    public static final String VERSION = "@MOD_VERSION@";
     
     @Instance(MODID)
     public static Claudy instance;
