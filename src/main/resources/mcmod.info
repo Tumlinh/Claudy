@@ -1,8 +1,8 @@
 [
 {
-  "modid": "dickymob",
-  "name": "Dicky Mob",
-  "description": "Spoonerism of a phallic character",
+  "modid": "claudy",
+  "name": "Claudy",
+  "description": "Snapshot utility",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
