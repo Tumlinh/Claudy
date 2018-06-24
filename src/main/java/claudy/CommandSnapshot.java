@@ -73,12 +73,20 @@ public class CommandSnapshot extends CommandBase
             if (box.getVolume() > 10000000) {
                 sendMessage(sender, "Volume is too big. Aborting", TextFormatting.RED);
             } else {
+                long start = System.currentTimeMillis();
                 Snapshot.save(label, box, world);
+                long duration = System.currentTimeMillis() - start;
+                System.out.printf("duration=%d%n", duration);
+
                 sendMessage(sender, "Saved snapshot '" + label + "' (" + box.getVolume() + " blocks)",
                         TextFormatting.BLUE);
             }
         } else if (args[0].equals("restore")) {
+            long start = System.currentTimeMillis();
             int volume = Snapshot.restore(label, world);
+            long duration = System.currentTimeMillis() - start;
+            System.out.printf("duration=%d%n", duration);
+
             sendMessage(sender, "Restored snapshot '" + label + "' (" + volume + " blocks)", TextFormatting.BLUE);
         }
     }
