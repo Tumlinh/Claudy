@@ -8,6 +8,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
@@ -53,14 +55,18 @@ public class Snapshot
 
     public static void save(String label, Box box, World world)
     {
-        // TODO: save snapshot into dedicated directory, e.g. mods/claudy/...
-        saveSnapshot(label + ".x", box, world);
+        Path dirPath = Paths.get("claudy_snapshots");
+        dirPath.toFile().mkdirs();
+        Path fullPath = dirPath.resolve(label + ".x");
+        saveBox(fullPath.toString(), box, world);
     }
 
     public static int restore(String label)
     {
         // Load NBT from file
-        NBTTagCompound mainCompound = loadSnapshot(label + ".x");
+        Path dirPath = Paths.get("claudy_snapshots");
+        Path fullPath = dirPath.resolve(label + ".x");
+        NBTTagCompound mainCompound = loadSnapshot(fullPath.toString());
 
         // Extract headers
         int dimension = mainCompound.getByte("dimension");
@@ -93,7 +99,7 @@ public class Snapshot
 
                     // Generate block state from snapshot
                     short payload = ((NBTTagShort) blockIterator.next()).getShort();
-                    int blockID = payload >> 8;
+                    int blockID = (payload & 0xFFFF) >> 8; // Shift payload as unsigned short
                     int metadata = payload & 0xFF;
                     Block block = Block.getBlockById(blockID);
                     IBlockState blockState = block.getStateFromMeta(metadata);
@@ -122,7 +128,7 @@ public class Snapshot
         }
     }
 
-    private static void saveSnapshot(String filename, Box box, World world)
+    private static void saveBox(String filename, Box box, World world)
     {
         NBTTagCompound mainCompound = new NBTTagCompound();
         mainCompound.setByte("dimension", (byte) world.provider.getDimension());
