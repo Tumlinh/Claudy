@@ -83,7 +83,7 @@ public class CommandSnapshot extends CommandBase
             }
         } else if (args[0].equals("restore")) {
             long start = System.currentTimeMillis();
-            int volume = Snapshot.restore(label, world);
+            int volume = Snapshot.restore(label);
             long duration = System.currentTimeMillis() - start;
             System.out.printf("duration=%d%n", duration);
 

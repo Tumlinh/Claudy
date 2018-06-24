@@ -22,6 +22,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.DimensionManager;
 
 public class Snapshot
 {
@@ -56,12 +57,13 @@ public class Snapshot
         saveSnapshot(label + ".x", box, world);
     }
 
-    public static int restore(String label, World world)
+    public static int restore(String label)
     {
         // Load NBT from file
         NBTTagCompound mainCompound = loadSnapshot(label + ".x");
 
         // Extract headers
+        int dimension = mainCompound.getByte("dimension");
         int[] minVertex = mainCompound.getIntArray("minVertex");
         int[] maxVertex = mainCompound.getIntArray("maxVertex");
         Box box = new Box(minVertex[0], minVertex[1], minVertex[2], maxVertex[0], maxVertex[1], maxVertex[2]);
@@ -71,12 +73,14 @@ public class Snapshot
         // Extract and process payload
         NBTTagList NBTBlocks = mainCompound.getTagList("blocks", new NBTTagShort().getId());
         NBTTagList NBTTileEntities = mainCompound.getTagList("tile_entities", new NBTTagCompound().getId());
-        processPayload(box, NBTBlocks, NBTTileEntities, world);
+        World world = DimensionManager.getWorld(dimension);
+        processPayload(box, NBTBlocks, NBTTileEntities, world, true);
 
         return box.getVolume();
     }
 
-    private static void processPayload(Box box, NBTTagList NBTBlocks, NBTTagList NBTTileEntities, World world)
+    private static void processPayload(Box box, NBTTagList NBTBlocks, NBTTagList NBTTileEntities, World world,
+            boolean notifyNeighbours)
     {
         // Iterate blocks within bounding box and currently loaded blocks
         Iterator<NBTBase> blockIterator = NBTBlocks.iterator();
@@ -97,7 +101,10 @@ public class Snapshot
                     // Update existing block
                     // TODO: Instead of overwriting existing block, replace it only if it's not the
                     // same? => decide based on a benchmark
-                    world.setBlockState(pos, blockState, 2);
+                    world.setBlockState(pos, blockState, notifyNeighbours ? 3 : 2);
+
+                    // TODO: notify previous block
+                    // world.notifyBlockUpdate(pos, current, replaced, notifyNeighbors ? 3 : 2);
 
                     if (block.hasTileEntity(null)) {
                         NBTTagCompound NBTTileEntity = (NBTTagCompound) tileEntitiesIterator.next();
@@ -118,6 +125,7 @@ public class Snapshot
     private static void saveSnapshot(String filename, Box box, World world)
     {
         NBTTagCompound mainCompound = new NBTTagCompound();
+        mainCompound.setByte("dimension", (byte) world.provider.getDimension());
         mainCompound.setIntArray("minVertex", new int[] { box.minX, box.minY, box.minZ });
         mainCompound.setIntArray("maxVertex", new int[] { box.maxX, box.maxY, box.maxZ });
 
