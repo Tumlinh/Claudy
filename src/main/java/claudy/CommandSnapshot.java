@@ -77,13 +77,16 @@ public class CommandSnapshot extends CommandBase
                 sendMessage(sender, "Volume is too big. Aborting", TextFormatting.RED);
             } else {
                 long start = System.currentTimeMillis();
+
                 try {
                     (new Snapshot(label, box, world)).save();
                 } catch (IOException e) {
-                    String msg = String.format("Failed saving snapshot '%s' (IOException)%n", label);
+                    String msg = String.format("Failed saving snapshot '%s' (IOException)", label);
                     sendMessage(sender, msg, TextFormatting.RED);
+
                     return;
                 }
+
                 long duration = System.currentTimeMillis() - start;
                 System.out.printf("duration=%d%n", duration);
 
@@ -92,14 +95,17 @@ public class CommandSnapshot extends CommandBase
             }
         } else if (args[0].equals("restore")) {
             long start = System.currentTimeMillis();
+
             Snapshot snapshot = new Snapshot(label, null, world);
             try {
                 snapshot.restore();
             } catch (IOException e) {
-                String msg = String.format("Failed restoring snapshot '%s' (IOException)%n", label);
+                String msg = String.format("Failed restoring snapshot '%s' (IOException)", label);
                 sendMessage(sender, msg, TextFormatting.RED);
+
                 return;
             }
+
             long duration = System.currentTimeMillis() - start;
             System.out.printf("duration=%d%n", duration);
 
@@ -107,7 +113,7 @@ public class CommandSnapshot extends CommandBase
             Date date = new Date(snapshot.getCreationTime());
             String creationTime = dt.format(date);
 
-            String msg = String.format("Restored snapshot '%s' (%d blocks)%nCreation time: %s%n", label,
+            String msg = String.format("Restored snapshot '%s' (%d blocks)%nCreation time: %s", label,
                     snapshot.getBox().getVolume(), creationTime);
             sendMessage(sender, msg, TextFormatting.BLUE);
         }
