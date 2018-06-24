@@ -30,12 +30,12 @@ public class Snapshot
 {
     public static class Box
     {
-        int minX;
-        int minY;
-        int minZ;
-        int maxX;
-        int maxY;
-        int maxZ;
+        public int minX;
+        public int minY;
+        public int minZ;
+        public int maxX;
+        public int maxY;
+        public int maxZ;
 
         public Box(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
         {
@@ -50,6 +50,30 @@ public class Snapshot
         public int getVolume()
         {
             return (this.maxX - this.minX + 1) * (this.maxY - this.minY + 1) * (this.maxZ - this.minZ + 1);
+        }
+    }
+
+    public static class BlockPayload
+    {
+        public int id;
+        public int metadata;
+
+        public BlockPayload(IBlockState state)
+        {
+            Block block = state.getBlock();
+            this.id = Block.getIdFromBlock(block);
+            this.metadata = block.getMetaFromState(state);
+        }
+
+        public BlockPayload(short payload)
+        {
+            this.id = (payload & 0xFFFF) >> 8; // Shift payload as unsigned short
+            this.metadata = payload & 0xFF;
+        }
+
+        public short compute()
+        {
+            return (short) ((id << 8) + metadata);
         }
     }
 
@@ -99,18 +123,25 @@ public class Snapshot
 
                     // Generate block state from snapshot
                     short payload = ((NBTTagShort) blockIterator.next()).getShort();
-                    int blockID = (payload & 0xFFFF) >> 8; // Shift payload as unsigned short
-                    int metadata = payload & 0xFF;
-                    Block block = Block.getBlockById(blockID);
-                    IBlockState blockState = block.getStateFromMeta(metadata);
+                    BlockPayload blockPayload = new BlockPayload(payload);
+                    Block block = Block.getBlockById(blockPayload.id);
+                    IBlockState blockState = block.getStateFromMeta(blockPayload.metadata);
 
-                    // Update existing block
-                    // TODO: Instead of overwriting existing block, replace it only if it's not the
-                    // same? => decide based on a benchmark
-                    world.setBlockState(pos, blockState, notifyNeighbours ? 3 : 2);
+                    // XXX: debug
+                    /*if (Block.getIdFromBlock(block) == 84) {
+                        System.out.printf("gotcha!%n");
+                    }*/
 
-                    // TODO: notify previous block
-                    // world.notifyBlockUpdate(pos, current, replaced, notifyNeighbors ? 3 : 2);
+                    // Compare current block with the one from snapshot
+                    IBlockState currentBlockState = world.getBlockState(pos);
+                    BlockPayload currentBlockPayload = new BlockPayload(currentBlockState);
+                    //if (currentBlockPayload.compute() != blockPayload.compute()) {
+                        // Replace block
+                        world.setBlockState(pos, blockState, notifyNeighbours ? 3 : 2);
+
+                        // TODO: notify replaced block
+                        // world.notifyBlockUpdate(pos, current, replaced, notifyNeighbors ? 3 : 2);
+                    //}
 
                     if (block.hasTileEntity(null)) {
                         NBTTagCompound NBTTileEntity = (NBTTagCompound) tileEntitiesIterator.next();
@@ -148,10 +179,13 @@ public class Snapshot
                     // Save block state
                     IBlockState state = world.getBlockState(pos);
                     Block block = state.getBlock();
-                    short payload = (short) ((Block.getIdFromBlock(block) << 8) + block.getMetaFromState(state));
+                    short payload = (new BlockPayload(state)).compute();
                     NBTBlocks.appendTag(new NBTTagShort(payload));
 
                     // XXX: debug
+                    /*if (Block.getIdFromBlock(block) == 84) {
+                        System.out.printf("gotcha!%n");
+                    }*/
                     /*
                      * System.out.format("(%d,%d,%d): %s (id=%d)  meta=%d  tile=%b data=%d%n", x, y,
                      * z, block.getLocalizedName(), Block.getIdFromBlock(block),
