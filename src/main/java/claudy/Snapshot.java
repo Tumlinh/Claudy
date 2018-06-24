@@ -1,21 +1,13 @@
 package claudy;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
-import java.util.zip.DeflaterOutputStream;
-import java.util.zip.InflaterInputStream;
+
+import claudy.utils.Box;
+import claudy.utils.NBTUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -28,31 +20,6 @@ import net.minecraftforge.common.DimensionManager;
 
 public class Snapshot
 {
-    public static class Box
-    {
-        public int minX;
-        public int minY;
-        public int minZ;
-        public int maxX;
-        public int maxY;
-        public int maxZ;
-
-        public Box(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
-        {
-            this.minX = minX;
-            this.minY = minY;
-            this.minZ = minZ;
-            this.maxX = maxX;
-            this.maxY = maxY;
-            this.maxZ = maxZ;
-        }
-
-        public int getVolume()
-        {
-            return (this.maxX - this.minX + 1) * (this.maxY - this.minY + 1) * (this.maxZ - this.minZ + 1);
-        }
-    }
-
     public static class BlockPayload
     {
         public int id;
@@ -90,7 +57,7 @@ public class Snapshot
         // Load NBT from file
         Path dirPath = Paths.get("claudy_snapshots");
         Path fullPath = dirPath.resolve(label + ".x");
-        NBTTagCompound mainCompound = loadSnapshot(fullPath.toString());
+        NBTTagCompound mainCompound = NBTUtil.loadNBT(fullPath.toString());
 
         // Extract headers
         int dimension = mainCompound.getByte("dimension");
@@ -104,12 +71,12 @@ public class Snapshot
         NBTTagList NBTBlocks = mainCompound.getTagList("blocks", new NBTTagShort().getId());
         NBTTagList NBTTileEntities = mainCompound.getTagList("tile_entities", new NBTTagCompound().getId());
         World world = DimensionManager.getWorld(dimension);
-        processPayload(box, NBTBlocks, NBTTileEntities, world, true);
+        restoreBox(box, NBTBlocks, NBTTileEntities, world, true);
 
         return box.getVolume();
     }
 
-    private static void processPayload(Box box, NBTTagList NBTBlocks, NBTTagList NBTTileEntities, World world,
+    private static void restoreBox(Box box, NBTTagList NBTBlocks, NBTTagList NBTTileEntities, World world,
             boolean notifyNeighbours)
     {
         // Iterate blocks within bounding box and currently loaded blocks
@@ -128,20 +95,21 @@ public class Snapshot
                     IBlockState blockState = block.getStateFromMeta(blockPayload.metadata);
 
                     // XXX: debug
-                    /*if (Block.getIdFromBlock(block) == 84) {
-                        System.out.printf("gotcha!%n");
-                    }*/
+                    /*
+                     * if (Block.getIdFromBlock(block) == 84) { System.out.printf("gotcha!%n"); }
+                     */
 
                     // Compare current block with the one from snapshot
                     IBlockState currentBlockState = world.getBlockState(pos);
                     BlockPayload currentBlockPayload = new BlockPayload(currentBlockState);
-                    //if (currentBlockPayload.compute() != blockPayload.compute()) {
-                        // Replace block
-                        world.setBlockState(pos, blockState, notifyNeighbours ? 3 : 2);
+                    // XXX: WIP
+                    // if (currentBlockPayload.compute() != blockPayload.compute()) {
+                    // Replace block
+                    world.setBlockState(pos, blockState, notifyNeighbours ? 3 : 2);
 
-                        // TODO: notify replaced block
-                        // world.notifyBlockUpdate(pos, current, replaced, notifyNeighbors ? 3 : 2);
-                    //}
+                    // TODO: notify replaced block
+                    // world.notifyBlockUpdate(pos, current, replaced, notifyNeighbors ? 3 : 2);
+                    // }
 
                     if (block.hasTileEntity(null)) {
                         NBTTagCompound NBTTileEntity = (NBTTagCompound) tileEntitiesIterator.next();
@@ -183,9 +151,9 @@ public class Snapshot
                     NBTBlocks.appendTag(new NBTTagShort(payload));
 
                     // XXX: debug
-                    /*if (Block.getIdFromBlock(block) == 84) {
-                        System.out.printf("gotcha!%n");
-                    }*/
+                    /*
+                     * if (Block.getIdFromBlock(block) == 84) { System.out.printf("gotcha!%n"); }
+                     */
                     /*
                      * System.out.format("(%d,%d,%d): %s (id=%d)  meta=%d  tile=%b data=%d%n", x, y,
                      * z, block.getLocalizedName(), Block.getIdFromBlock(block),
@@ -209,44 +177,6 @@ public class Snapshot
         mainCompound.setTag("blocks", NBTBlocks);
         mainCompound.setTag("tile_entities", NBTTileEntities);
 
-        // Save NBT compound to file
-        FileOutputStream fileOut = null;
-        try {
-            fileOut = new FileOutputStream(filename);
-        } catch (FileNotFoundException e1) {
-            e1.printStackTrace();
-        }
-        DataOutputStream dataoutputstream = new DataOutputStream(
-                new BufferedOutputStream(new DeflaterOutputStream(fileOut)));
-        try {
-            CompressedStreamTools.write(mainCompound, dataoutputstream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            dataoutputstream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static NBTTagCompound loadSnapshot(String filename)
-    {
-        NBTTagCompound mainCompound = null;
-
-        FileInputStream fileIn = null;
-        try {
-            fileIn = new FileInputStream(filename);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        DataInputStream datainputstream = new DataInputStream(new BufferedInputStream(new InflaterInputStream(fileIn)));
-        try {
-            mainCompound = CompressedStreamTools.read(datainputstream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return mainCompound;
+        NBTUtil.saveNBT(filename, mainCompound);
     }
 }

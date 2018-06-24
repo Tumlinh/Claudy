@@ -3,7 +3,7 @@ package claudy;
 import java.util.ArrayList;
 import java.util.List;
 
-import claudy.Snapshot.Box;
+import claudy.utils.Box;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
