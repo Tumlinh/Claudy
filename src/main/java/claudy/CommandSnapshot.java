@@ -1,6 +1,9 @@
 package claudy;
 
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import claudy.utils.Box;
@@ -74,20 +77,39 @@ public class CommandSnapshot extends CommandBase
                 sendMessage(sender, "Volume is too big. Aborting", TextFormatting.RED);
             } else {
                 long start = System.currentTimeMillis();
-                Snapshot.save(label, box, world);
+                try {
+                    (new Snapshot(label, box, world)).save();
+                } catch (IOException e) {
+                    String msg = String.format("Failed saving snapshot '%s' (IOException)%n", label);
+                    sendMessage(sender, msg, TextFormatting.RED);
+                    return;
+                }
                 long duration = System.currentTimeMillis() - start;
                 System.out.printf("duration=%d%n", duration);
 
-                sendMessage(sender, "Saved snapshot '" + label + "' (" + box.getVolume() + " blocks)",
-                        TextFormatting.BLUE);
+                String msg = String.format("Saved snapshot '%s' (%d blocks)", label, box.getVolume());
+                sendMessage(sender, msg, TextFormatting.BLUE);
             }
         } else if (args[0].equals("restore")) {
             long start = System.currentTimeMillis();
-            int volume = Snapshot.restore(label);
+            Snapshot snapshot = new Snapshot(label, null, world);
+            try {
+                snapshot.restore();
+            } catch (IOException e) {
+                String msg = String.format("Failed restoring snapshot '%s' (IOException)%n", label);
+                sendMessage(sender, msg, TextFormatting.RED);
+                return;
+            }
             long duration = System.currentTimeMillis() - start;
             System.out.printf("duration=%d%n", duration);
 
-            sendMessage(sender, "Restored snapshot '" + label + "' (" + volume + " blocks)", TextFormatting.BLUE);
+            SimpleDateFormat dt = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+            Date date = new Date(snapshot.getCreationTime());
+            String creationTime = dt.format(date);
+
+            String msg = String.format("Restored snapshot '%s' (%d blocks)%nCreation time: %s%n", label,
+                    snapshot.getBox().getVolume(), creationTime);
+            sendMessage(sender, msg, TextFormatting.BLUE);
         }
     }
 

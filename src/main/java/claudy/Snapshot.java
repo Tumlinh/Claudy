@@ -1,7 +1,9 @@
 package claudy;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.Iterator;
 
 import claudy.utils.Box;
@@ -20,10 +22,15 @@ import net.minecraftforge.common.DimensionManager;
 
 public class Snapshot
 {
-    public static class BlockPayload
+    private String label;
+    private Box box;
+    private World world;
+    private long creationTime;
+
+    private static class BlockPayload
     {
-        public int id;
-        public int metadata;
+        private int id;
+        private int metadata;
 
         public BlockPayload(IBlockState state)
         {
@@ -44,26 +51,37 @@ public class Snapshot
         }
     }
 
-    public static void save(String label, Box box, World world)
+    public Snapshot(String label, Box box, World world)
+    {
+        this.label = label;
+        this.box = box;
+        this.world = world;
+    }
+
+    public void save() throws IOException
     {
         Path dirPath = Paths.get("claudy_snapshots");
         dirPath.toFile().mkdirs();
-        Path fullPath = dirPath.resolve(label + ".x");
-        saveBox(fullPath.toString(), box, world);
+        Path fullPath = dirPath.resolve(this.label + ".x");
+        saveBox(fullPath.toString(), this.box, this.world);
     }
 
-    public static int restore(String label)
+    public void restore() throws IOException
     {
         // Load NBT from file
         Path dirPath = Paths.get("claudy_snapshots");
-        Path fullPath = dirPath.resolve(label + ".x");
+        Path fullPath = dirPath.resolve(this.label + ".x");
         NBTTagCompound mainCompound = NBTUtil.loadNBT(fullPath.toString());
 
         // Extract headers
         int dimension = mainCompound.getByte("dimension");
         int[] minVertex = mainCompound.getIntArray("minVertex");
         int[] maxVertex = mainCompound.getIntArray("maxVertex");
+        long creationTime = mainCompound.getLong("time");
+
         Box box = new Box(minVertex[0], minVertex[1], minVertex[2], maxVertex[0], maxVertex[1], maxVertex[2]);
+        this.box = box;
+        this.creationTime = creationTime;
 
         // TODO: option for choosing between blocks, tile entities or both
 
@@ -72,8 +90,6 @@ public class Snapshot
         NBTTagList NBTTileEntities = mainCompound.getTagList("tile_entities", new NBTTagCompound().getId());
         World world = DimensionManager.getWorld(dimension);
         restoreBox(box, NBTBlocks, NBTTileEntities, world, true);
-
-        return box.getVolume();
     }
 
     private static void restoreBox(Box box, NBTTagList NBTBlocks, NBTTagList NBTTileEntities, World world,
@@ -104,6 +120,7 @@ public class Snapshot
                     BlockPayload currentBlockPayload = new BlockPayload(currentBlockState);
                     // XXX: WIP
                     // if (currentBlockPayload.compute() != blockPayload.compute()) {
+
                     // Replace block
                     world.setBlockState(pos, blockState, notifyNeighbours ? 3 : 2);
 
@@ -127,12 +144,13 @@ public class Snapshot
         }
     }
 
-    private static void saveBox(String filename, Box box, World world)
+    private static void saveBox(String filename, Box box, World world) throws IOException
     {
         NBTTagCompound mainCompound = new NBTTagCompound();
         mainCompound.setByte("dimension", (byte) world.provider.getDimension());
         mainCompound.setIntArray("minVertex", new int[] { box.minX, box.minY, box.minZ });
         mainCompound.setIntArray("maxVertex", new int[] { box.maxX, box.maxY, box.maxZ });
+        mainCompound.setLong("time", (new Date()).getTime());
 
         // Buffers
         NBTTagList NBTBlocks = new NBTTagList();
@@ -178,5 +196,25 @@ public class Snapshot
         mainCompound.setTag("tile_entities", NBTTileEntities);
 
         NBTUtil.saveNBT(filename, mainCompound);
+    }
+
+    public String getLabel()
+    {
+        return this.label;
+    }
+
+    public Box getBox()
+    {
+        return this.box;
+    }
+
+    public World getWorld()
+    {
+        return this.world;
+    }
+
+    public long getCreationTime()
+    {
+        return this.creationTime;
     }
 }
