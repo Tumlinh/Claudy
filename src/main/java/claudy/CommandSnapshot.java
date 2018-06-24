@@ -68,7 +68,6 @@ public class CommandSnapshot extends CommandBase
             int z2 = (int) parseDouble(d2, args[7], true);
 
             Box box = new Box(x1, y1, z1, x2, y2, z2);
-            int x = box.getVolume();
 
             // Check box volume for security purposes
             if (box.getVolume() > 10000000) {

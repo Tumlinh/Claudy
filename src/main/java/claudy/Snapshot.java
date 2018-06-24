@@ -9,10 +9,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -54,6 +52,7 @@ public class Snapshot
 
     public static void save(String label, Box box, World world)
     {
+        // TODO: save snapshot into dedicated directory, e.g. mods/claudy/...
         saveSnapshot(label + ".x", box, world);
     }
 
@@ -69,18 +68,15 @@ public class Snapshot
 
         // TODO: option for choosing between blocks, tile entities or both
 
-        // Extract blocks and process them
+        // Extract and process payload
         NBTTagList NBTBlocks = mainCompound.getTagList("blocks", new NBTTagShort().getId());
         NBTTagList NBTTileEntities = mainCompound.getTagList("tile_entities", new NBTTagCompound().getId());
-        processBlocks(box, NBTBlocks, NBTTileEntities, world);
-
-        // TODO: Extract tile entities and process them
-        // processTileEntities(box, NBTTileEntities, world);
+        processPayload(box, NBTBlocks, NBTTileEntities, world);
 
         return box.getVolume();
     }
 
-    private static void processBlocks(Box box, NBTTagList NBTBlocks, NBTTagList NBTTileEntities, World world)
+    private static void processPayload(Box box, NBTTagList NBTBlocks, NBTTagList NBTTileEntities, World world)
     {
         // Iterate blocks within bounding box and currently loaded blocks
         Iterator<NBTBase> blockIterator = NBTBlocks.iterator();
@@ -98,31 +94,24 @@ public class Snapshot
                     Block block = Block.getBlockById(blockID);
                     IBlockState blockState = block.getStateFromMeta(metadata);
 
+                    // Update existing block
+                    // TODO: Instead of overwriting existing block, replace it only if it's not the
+                    // same? => decide based on a benchmark
                     world.setBlockState(pos, blockState, 2);
 
                     if (block.hasTileEntity(null)) {
                         NBTTagCompound NBTTileEntity = (NBTTagCompound) tileEntitiesIterator.next();
                         TileEntity tileEntity = TileEntity.create(world, NBTTileEntity);
                         // XXX: Wrong order of tile entities here?
-                        // System.out.println(blockState);
-                        // System.out.println(tileEntity);
-                        // System.out.println();
+                        /*
+                         * System.out.println(blockState); System.out.println(tileEntity);
+                         * System.out.println();
+                         */
                         if (tileEntity != null)
                             world.getChunkFromBlockCoords(pos).addTileEntity(tileEntity);
                     }
-
-                    // TODO: Overwrite existing blocks (or replace them only if not the same??? =>
-                    // decide based on a benchmark)
-
                 }
             }
-        }
-    }
-
-    private static void processTileEntities(Box box, List<NBTTagCompound> NBTTileEntities, World world)
-    {
-        for (NBTTagCompound NBTTileEntity : NBTTileEntities) {
-            TileEntity.create(world, NBTTileEntity); // XXX: Will probably fail if TE already exists
         }
     }
 
