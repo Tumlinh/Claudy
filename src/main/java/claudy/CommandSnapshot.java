@@ -1,5 +1,7 @@
 package claudy;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,8 +26,27 @@ public class CommandSnapshot extends CommandBase
     @Override
     public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
     {
-        List<String> suggestions = new ArrayList<String>();
-        return getListOfStringsMatchingLastWord(args, suggestions);
+        if (args.length == 1) {
+            return getListOfStringsMatchingLastWord(args, "save", "restore");
+        } else if (args.length == 2) {
+            List<String> labels = new ArrayList<String>();
+            // TODO: get dir from config file
+            File[] files = new File("claudy_snapshots").listFiles(new FileFilter()
+            {
+                @Override
+                public boolean accept(File file)
+                {
+                    return file.isFile() && file.getName().endsWith(".x");
+                }
+            });
+
+            for (File file : files)
+                labels.add(file.getName().substring(0, file.getName().length() - 2));
+
+            return getListOfStringsMatchingLastWord(args, labels);
+        }
+
+        return null;
     }
 
     @Override
@@ -37,13 +58,13 @@ public class CommandSnapshot extends CommandBase
     @Override
     public String getName()
     {
-        return "snapshot";
+        return "claudy";
     }
 
     @Override
     public String getUsage(ICommandSender sender)
     {
-        return "/snapshot <save|restore> [...]";
+        return "/claudy <save|restore> [...]";
     }
 
     @Override
@@ -109,7 +130,7 @@ public class CommandSnapshot extends CommandBase
             long duration = System.currentTimeMillis() - start;
             System.out.printf("duration=%d%n", duration);
 
-            SimpleDateFormat dt = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+            SimpleDateFormat dt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss (Z)");
             Date date = new Date(snapshot.getCreationTime());
             String creationTime = dt.format(date);
 

@@ -125,7 +125,7 @@ public class Snapshot
                     world.setBlockState(pos, blockState, notifyNeighbours ? 3 : 2);
 
                     // TODO: notify replaced block
-                    // world.notifyBlockUpdate(pos, current, replaced, notifyNeighbors ? 3 : 2);
+                    // world.notifyBlockUpdate(pos, currentBlockState, blockState, notifyNeighbours ? 3 : 2);
                     // }
 
                     if (block.hasTileEntity(null)) {
