@@ -11,12 +11,33 @@ public class Box
 
     public Box(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
     {
-        this.minX = minX;
-        this.minY = minY;
-        this.minZ = minZ;
-        this.maxX = maxX;
-        this.maxY = maxY;
-        this.maxZ = maxZ;
+        // Make the box compliant
+
+        if (minX <= maxX) {
+            this.minX = minX;
+            this.maxX = maxX;
+        } else {
+            this.minX = maxX;
+            this.maxX = minX;
+        }
+
+        if (minY <= maxY) {
+            this.minY = minY;
+            this.maxY = maxY;
+        } else {
+            this.minY = maxY;
+            this.maxY = minY;
+        }
+        this.minY = this.minY < 0 ? 0 : this.minY;
+        this.maxY = this.maxY > 256 ? 256 : this.maxY;
+
+        if (minZ <= maxZ) {
+            this.minZ = minZ;
+            this.maxZ = maxZ;
+        } else {
+            this.minZ = maxZ;
+            this.maxZ = minZ;
+        }
     }
 
     public int getVolume()
