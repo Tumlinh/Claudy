@@ -17,7 +17,6 @@ import net.minecraft.nbt.NBTTagShort;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.DimensionManager;
 
 public class Snapshot
@@ -60,9 +59,9 @@ public class Snapshot
 
     public void save() throws IOException
     {
-        Path dirPath = Paths.get("claudy_snapshots");
+        Path dirPath = Paths.get(ModConfig.SNAPSHOT_DRECTORY);
         dirPath.toFile().mkdirs();
-        Path fullPath = dirPath.resolve(this.label + ".x");
+        Path fullPath = dirPath.resolve(this.label + ModConfig.SNAPSHOT_EXTENSION);
         saveBox(fullPath.toString(), this.box, this.world);
     }
 
@@ -70,7 +69,7 @@ public class Snapshot
     {
         // Load NBT from file
         Path dirPath = Paths.get("claudy_snapshots");
-        Path fullPath = dirPath.resolve(this.label + ".x");
+        Path fullPath = dirPath.resolve(this.label + ModConfig.SNAPSHOT_EXTENSION);
         NBTTagCompound mainCompound = NBTUtil.loadNBT(fullPath.toString());
 
         // Extract headers
@@ -83,7 +82,8 @@ public class Snapshot
         this.box = box;
         this.creationTime = creationTime;
 
-        // TODO: option for choosing between blocks, tile entities or both
+        // TODO: Configuration: option for choosing between blocks, tile entities or
+        // both
 
         // Extract and process payload
         NBTTagList NBTBlocks = mainCompound.getTagList("blocks", new NBTTagShort().getId());
@@ -118,14 +118,15 @@ public class Snapshot
                     // Compare current block with the one from snapshot
                     IBlockState currentBlockState = world.getBlockState(pos);
                     BlockPayload currentBlockPayload = new BlockPayload(currentBlockState);
-                    // XXX: WIP
+                    // TODO: Benchmark code
                     // if (currentBlockPayload.compute() != blockPayload.compute()) {
 
                     // Replace block
                     world.setBlockState(pos, blockState, notifyNeighbours ? 3 : 2);
 
-                    // TODO: notify replaced block
-                    // world.notifyBlockUpdate(pos, currentBlockState, blockState, notifyNeighbours ? 3 : 2);
+                    // TODO: notify replaced block?
+                    // world.notifyBlockUpdate(pos, currentBlockState, blockState, notifyNeighbours
+                    // ? 3 : 2);
                     // }
 
                     if (block.hasTileEntity(null)) {
@@ -137,7 +138,7 @@ public class Snapshot
                          * System.out.println();
                          */
                         if (tileEntity != null)
-                            world.getChunkFromBlockCoords(pos).addTileEntity(tileEntity);
+                            world.addTileEntity(tileEntity);
                     }
                 }
             }
@@ -179,13 +180,11 @@ public class Snapshot
                      */
 
                     // Save tile entity
-                    if (block.hasTileEntity(null)) {
-                        TileEntity tileEntity = world.getChunkFromBlockCoords(pos).getTileEntity(pos,
-                                Chunk.EnumCreateEntityType.IMMEDIATE);
+                    if (block.hasTileEntity(null) && ModConfig.SAVE_TILE_ENTITIES) {
+                        TileEntity tileEntity = world.getTileEntity(pos);
                         NBTTagCompound compound = new NBTTagCompound();
                         compound = tileEntity.writeToNBT(compound);
                         NBTTileEntities.appendTag(compound);
-                        // System.out.println(tileEntity);
                     }
                 }
             }

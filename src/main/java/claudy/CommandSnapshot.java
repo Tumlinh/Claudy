@@ -27,11 +27,10 @@ public class CommandSnapshot extends CommandBase
     public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
     {
         if (args.length == 1) {
-            return getListOfStringsMatchingLastWord(args, "save", "restore");
+            return getListOfStringsMatchingLastWord(args, "save", "restore", "delete");
         } else if (args.length == 2) {
             List<String> labels = new ArrayList<String>();
-            // TODO: get dir from config file
-            File[] files = new File("claudy_snapshots").listFiles(new FileFilter()
+            File[] files = new File(ModConfig.SNAPSHOT_DRECTORY).listFiles(new FileFilter()
             {
                 @Override
                 public boolean accept(File file)
@@ -64,15 +63,12 @@ public class CommandSnapshot extends CommandBase
     @Override
     public String getUsage(ICommandSender sender)
     {
-        return "/claudy <save|restore> [...]";
+        return "/claudy save <label> <x1> <y1> <z1> <x2> <y2> <z2>\n/claudy <restore|delete> <label>";
     }
 
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        // TODO: check args length
-        // TODO: autocompletion?
-
         if (args.length < 2)
             throw new WrongUsageException(this.getUsage(sender), new Object[0]);
 
@@ -80,6 +76,9 @@ public class CommandSnapshot extends CommandBase
         String label = args[1];
 
         if (args[0].equals("save")) {
+            if (args.length < 8)
+                throw new WrongUsageException(this.getUsage(sender), new Object[0]);
+
             Vec3d vec3d = sender.getPositionVector();
             double d0 = vec3d.x;
             double d1 = vec3d.y;
@@ -94,7 +93,7 @@ public class CommandSnapshot extends CommandBase
             Box box = new Box(x1, y1, z1, x2, y2, z2);
 
             // Check box volume for security purposes
-            if (box.getVolume() > 10000000) {
+            if (box.getVolume() > ModConfig.MAX_BOX_VOLUME) {
                 sendMessage(sender, "Volume is too big. Aborting", TextFormatting.RED);
             } else {
                 long start = System.currentTimeMillis();
@@ -137,6 +136,11 @@ public class CommandSnapshot extends CommandBase
             String msg = String.format("Restored snapshot '%s' (%d blocks)%nCreation time: %s", label,
                     snapshot.getBox().getVolume(), creationTime);
             sendMessage(sender, msg, TextFormatting.BLUE);
+        } else if (args[0].equals("delete")) {
+            if (new File(ModConfig.SNAPSHOT_DRECTORY + "/" + label + ModConfig.SNAPSHOT_EXTENSION).delete())
+                sendMessage(sender, String.format("Removed snapshot '%s'", label), TextFormatting.BLUE);
+            else
+                sendMessage(sender, String.format("Failed removing snapshot '%s'", label), TextFormatting.RED);
         }
     }
 
