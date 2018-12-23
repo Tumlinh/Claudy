@@ -61,6 +61,12 @@ dependencies {
 
 }
 
+jar {
+    manifest  {
+        attributes 'FMLAT': 'claudy_at.cfg'
+    }
+}
+
 processResources {
     // this will ensure that this task is redone when the versions change.
     inputs.property "version", project.version

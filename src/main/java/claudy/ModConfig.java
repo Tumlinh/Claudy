@@ -22,9 +22,13 @@ public class ModConfig
 
     private void load()
     {
-        SNAPSHOT_DRECTORY = config.getString("SnapshotDirectory", Configuration.CATEGORY_GENERAL, SNAPSHOT_DRECTORY, "");
-        SNAPSHOT_EXTENSION = config.getString("SnapshotExtension", Configuration.CATEGORY_GENERAL, SNAPSHOT_EXTENSION, "");
-        SAVE_TILE_ENTITIES = config.getBoolean("saveTileEntities", Configuration.CATEGORY_GENERAL, SAVE_TILE_ENTITIES, "");
-        MAX_BOX_VOLUME = config.getInt("MaxBoxVolume", Configuration.CATEGORY_GENERAL, MAX_BOX_VOLUME, 0, Integer.MAX_VALUE, "");
+        SNAPSHOT_DRECTORY = config.getString("SnapshotDirectory", Configuration.CATEGORY_GENERAL, SNAPSHOT_DRECTORY,
+                "");
+        SNAPSHOT_EXTENSION = config.getString("SnapshotExtension", Configuration.CATEGORY_GENERAL, SNAPSHOT_EXTENSION,
+                "");
+        SAVE_TILE_ENTITIES = config.getBoolean("saveTileEntities", Configuration.CATEGORY_GENERAL, SAVE_TILE_ENTITIES,
+                "");
+        MAX_BOX_VOLUME = config.getInt("MaxBoxVolume", Configuration.CATEGORY_GENERAL, MAX_BOX_VOLUME, 0,
+                Integer.MAX_VALUE, "");
     }
 }

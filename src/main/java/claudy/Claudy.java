@@ -2,6 +2,8 @@ package claudy;
 
 import java.io.File;
 import claudy.ModConfig;
+import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
@@ -14,6 +16,8 @@ public class Claudy
     public static final String MODID = "claudy";
     public static final String NAME = "Claudy";
     public static final String VERSION = "@MOD_VERSION@";
+
+    public File snapshotPath;
 
     @Instance(MODID)
     public static Claudy instance;
@@ -29,6 +33,10 @@ public class Claudy
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event)
     {
+        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        snapshotPath = new File(server.anvilFile + "/" + server.getFolderName(), ModConfig.SNAPSHOT_DRECTORY);
+
+        // Register commands
         event.registerServerCommand(new CommandSnapshot());
     }
 }

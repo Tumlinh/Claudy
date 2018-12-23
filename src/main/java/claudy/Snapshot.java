@@ -59,7 +59,7 @@ public class Snapshot
 
     public void save() throws IOException
     {
-        Path dirPath = Paths.get(ModConfig.SNAPSHOT_DRECTORY);
+        Path dirPath = Paths.get(Claudy.instance.snapshotPath.toURI());
         dirPath.toFile().mkdirs();
         Path fullPath = dirPath.resolve(this.label + ModConfig.SNAPSHOT_EXTENSION);
         saveBox(fullPath.toString(), this.box, this.world);
@@ -68,7 +68,7 @@ public class Snapshot
     public void restore() throws IOException
     {
         // Load NBT from file
-        Path dirPath = Paths.get("claudy_snapshots");
+        Path dirPath = Paths.get(Claudy.instance.snapshotPath.toURI());
         Path fullPath = dirPath.resolve(this.label + ModConfig.SNAPSHOT_EXTENSION);
         NBTTagCompound mainCompound = NBTUtil.loadNBT(fullPath.toString());
 

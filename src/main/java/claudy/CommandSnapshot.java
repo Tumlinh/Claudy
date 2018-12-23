@@ -112,7 +112,7 @@ public class CommandSnapshot extends CommandBase
                     snapshot.getBox().getVolume(), creationTime);
             sendMessage(sender, msg, TextFormatting.BLUE);
         } else if (args[0].equals("delete")) {
-            if (new File(ModConfig.SNAPSHOT_DRECTORY + "/" + label + ModConfig.SNAPSHOT_EXTENSION).delete())
+            if (new File(Claudy.instance.snapshotPath, label + ModConfig.SNAPSHOT_EXTENSION).delete())
                 sendMessage(sender, String.format("Removed snapshot '%s'", label), TextFormatting.BLUE);
             else
                 sendMessage(sender, String.format("Failed removing snapshot '%s'", label), TextFormatting.RED);
@@ -126,7 +126,7 @@ public class CommandSnapshot extends CommandBase
             return getListOfStringsMatchingLastWord(args, "save", "restore", "delete");
         } else if (args.length == 2) {
             List<String> labels = new ArrayList<String>();
-            File[] files = new File(ModConfig.SNAPSHOT_DRECTORY).listFiles(new FileFilter()
+            File[] files = Claudy.instance.snapshotPath.listFiles(new FileFilter()
             {
                 @Override
                 public boolean accept(File file)
