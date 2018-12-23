@@ -22,41 +22,17 @@ import net.minecraft.world.World;
 
 public class CommandSnapshot extends CommandBase
 {
+
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
+    public String getName()
     {
-        if (args.length == 1) {
-            return getListOfStringsMatchingLastWord(args, "save", "restore", "delete");
-        } else if (args.length == 2) {
-            List<String> labels = new ArrayList<String>();
-            File[] files = new File(ModConfig.SNAPSHOT_DRECTORY).listFiles(new FileFilter()
-            {
-                @Override
-                public boolean accept(File file)
-                {
-                    return file.isFile() && file.getName().endsWith(".x");
-                }
-            });
-
-            for (File file : files)
-                labels.add(file.getName().substring(0, file.getName().length() - 2));
-
-            return getListOfStringsMatchingLastWord(args, labels);
-        }
-
-        return null;
+        return "claudy";
     }
 
     @Override
     public int getRequiredPermissionLevel()
     {
         return 2;
-    }
-
-    @Override
-    public String getName()
-    {
-        return "claudy";
     }
 
     @Override
@@ -141,6 +117,31 @@ public class CommandSnapshot extends CommandBase
             else
                 sendMessage(sender, String.format("Failed removing snapshot '%s'", label), TextFormatting.RED);
         }
+    }
+
+    @Override
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
+    {
+        if (args.length == 1) {
+            return getListOfStringsMatchingLastWord(args, "save", "restore", "delete");
+        } else if (args.length == 2) {
+            List<String> labels = new ArrayList<String>();
+            File[] files = new File(ModConfig.SNAPSHOT_DRECTORY).listFiles(new FileFilter()
+            {
+                @Override
+                public boolean accept(File file)
+                {
+                    return file.isFile() && file.getName().endsWith(".x");
+                }
+            });
+
+            for (File file : files)
+                labels.add(file.getName().substring(0, file.getName().length() - 2));
+
+            return getListOfStringsMatchingLastWord(args, labels);
+        }
+
+        return new ArrayList<String>();
     }
 
     private static void sendMessage(ICommandSender sender, String message, TextFormatting textFormatting)
