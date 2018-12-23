@@ -38,7 +38,8 @@ public class CommandSnapshot extends CommandBase
     @Override
     public String getUsage(ICommandSender sender)
     {
-        return "/\nclaudy save <label> <x1> <y1> <z1> <x2> <y2> <z2>\n/claudy <restore|delete> <label>";
+        return "/\nclaudy save <label> <x1> <y1> <z1> <x2> <y2> <z2>\n/claudy <restore|delete> <label>"
+                + "\n/claudy restore <label> <x> <y> <z>";
     }
 
     @Override
@@ -88,10 +89,25 @@ public class CommandSnapshot extends CommandBase
                 String msg = String.format("Saved snapshot '%s' (%d blocks)", label, box.getVolume());
                 sendMessage(sender, msg, TextFormatting.BLUE);
             }
-        } else if (args[0].equals("restore")) {
+        }
+
+        else if (args[0].equals("restore")) {
+            BlockPos position = null;
+
+            if (args.length >= 5) {
+                Vec3d vec3d = sender.getPositionVector();
+                double d0 = vec3d.x;
+                double d1 = vec3d.y;
+                double d2 = vec3d.z;
+                int x = (int) parseDouble(d0, args[2], true);
+                int y = (int) parseDouble(d1, args[3], true);
+                int z = (int) parseDouble(d2, args[4], true);
+                position = new BlockPos(x, y, z);
+            }
+
             long start = System.currentTimeMillis();
 
-            Snapshot snapshot = new Snapshot(label, null, world);
+            Snapshot snapshot = new Snapshot(label, position, world);
             try {
                 snapshot.restore();
             } catch (IOException e) {
@@ -111,7 +127,9 @@ public class CommandSnapshot extends CommandBase
             String msg = String.format("Restored snapshot '%s' (%d blocks)%nCreation time: %s", label,
                     snapshot.getBox().getVolume(), creationTime);
             sendMessage(sender, msg, TextFormatting.BLUE);
-        } else if (args[0].equals("delete")) {
+        }
+
+        else if (args[0].equals("delete")) {
             if (new File(Claudy.instance.snapshotPath, label + ModConfig.SNAPSHOT_EXTENSION).delete())
                 sendMessage(sender, String.format("Removed snapshot '%s'", label), TextFormatting.BLUE);
             else

@@ -23,6 +23,7 @@ public class Snapshot
 {
     private String label;
     private Box box;
+    private BlockPos position;
     private World world;
     private long creationTime;
 
@@ -50,15 +51,29 @@ public class Snapshot
         }
     }
 
-    public Snapshot(String label, Box box, World world)
+    public Snapshot(String label, World world)
     {
         this.label = label;
-        this.box = box;
         this.world = world;
+    }
+
+    public Snapshot(String label, Box box, World world)
+    {
+        this(label, world);
+        this.box = box;
+    }
+
+    public Snapshot(String label, BlockPos position, World world)
+    {
+        this(label, world);
+        this.position = position;
     }
 
     public void save() throws IOException
     {
+        if (box == null)
+            return;
+
         Path dirPath = Paths.get(Claudy.instance.snapshotPath.toURI());
         dirPath.toFile().mkdirs();
         Path fullPath = dirPath.resolve(label + ModConfig.SNAPSHOT_EXTENSION);
@@ -78,7 +93,13 @@ public class Snapshot
         int[] maxVertex = mainCompound.getIntArray("maxVertex");
         long creationTime = mainCompound.getLong("time");
 
-        Box box = new Box(minVertex[0], minVertex[1], minVertex[2], maxVertex[0], maxVertex[1], maxVertex[2]);
+        Box box;
+        if (position == null)
+            box = new Box(minVertex[0], minVertex[1], minVertex[2], maxVertex[0], maxVertex[1], maxVertex[2]);
+        else
+            box = new Box(position.getX(), position.getY(), position.getZ(),
+                    position.getX() + maxVertex[0] - minVertex[0], position.getY() + maxVertex[1] - minVertex[1],
+                    position.getZ() + maxVertex[2] - minVertex[2]);
         this.box = box;
         this.creationTime = creationTime;
 
