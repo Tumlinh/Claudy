@@ -38,7 +38,7 @@ public class CommandSnapshot extends CommandBase
     @Override
     public String getUsage(ICommandSender sender)
     {
-        return "/claudy save <label> <x1> <y1> <z1> <x2> <y2> <z2>\n/claudy <restore|delete> <label>";
+        return "/\nclaudy save <label> <x1> <y1> <z1> <x2> <y2> <z2>\n/claudy <restore|delete> <label>";
     }
 
     @Override

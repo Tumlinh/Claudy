@@ -14,8 +14,8 @@ public class ModConfig
 
     public ModConfig(File configFile)
     {
-        this.config = new Configuration(configFile);
-        this.config.load();
+        config = new Configuration(configFile);
+        config.load();
         this.load();
         this.config.save();
     }

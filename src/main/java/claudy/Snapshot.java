@@ -34,14 +34,14 @@ public class Snapshot
         public BlockPayload(IBlockState state)
         {
             Block block = state.getBlock();
-            this.id = Block.getIdFromBlock(block);
-            this.metadata = block.getMetaFromState(state);
+            id = Block.getIdFromBlock(block);
+            metadata = block.getMetaFromState(state);
         }
 
         public BlockPayload(short payload)
         {
-            this.id = (payload & 0xFFFF) >> 8; // Shift payload as unsigned short
-            this.metadata = payload & 0xFF;
+            id = (payload & 0xFFFF) >> 8; // Shift payload as unsigned short
+            metadata = payload & 0xFF;
         }
 
         public short compute()
@@ -61,15 +61,15 @@ public class Snapshot
     {
         Path dirPath = Paths.get(Claudy.instance.snapshotPath.toURI());
         dirPath.toFile().mkdirs();
-        Path fullPath = dirPath.resolve(this.label + ModConfig.SNAPSHOT_EXTENSION);
-        saveBox(fullPath.toString(), this.box, this.world);
+        Path fullPath = dirPath.resolve(label + ModConfig.SNAPSHOT_EXTENSION);
+        saveBox(fullPath.toString(), box, world);
     }
 
     public void restore() throws IOException
     {
         // Load NBT from file
         Path dirPath = Paths.get(Claudy.instance.snapshotPath.toURI());
-        Path fullPath = dirPath.resolve(this.label + ModConfig.SNAPSHOT_EXTENSION);
+        Path fullPath = dirPath.resolve(label + ModConfig.SNAPSHOT_EXTENSION);
         NBTTagCompound mainCompound = NBTUtil.loadNBT(fullPath.toString());
 
         // Extract headers
@@ -199,21 +199,21 @@ public class Snapshot
 
     public String getLabel()
     {
-        return this.label;
+        return label;
     }
 
     public Box getBox()
     {
-        return this.box;
+        return box;
     }
 
     public World getWorld()
     {
-        return this.world;
+        return world;
     }
 
     public long getCreationTime()
     {
-        return this.creationTime;
+        return creationTime;
     }
 }
